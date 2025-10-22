@@ -291,22 +291,46 @@
             background: rgba(212, 165, 116, 1);
         }
         
-        .instructions {
+        /* Minimap */
+        .minimap {
             position: absolute;
             top: 10px;
             right: 10px;
+            width: 150px;
+            height: 150px;
             background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 15px;
             border: 2px solid #d4a574;
-            font-size: 12px;
-            max-width: 150px;
+            border-radius: 15px;
+            padding: 10px;
             z-index: 10;
         }
         
-        .instructions div {
-            margin: 3px 0;
+        .minimap-title {
+            color: #d4a574;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        
+        #minimap-canvas {
+            width: 100%;
+            height: calc(100% - 20px);
+        }
+        
+        .instructions {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 15px;
+            border: 2px solid #d4a574;
+            font-size: 11px;
+            text-align: center;
+            z-index: 10;
         }
         
         .floating-text {
@@ -341,8 +365,9 @@
                 margin-bottom: 10px;
             }
             
-            .instructions {
-                display: none;
+            .minimap {
+                width: 120px;
+                height: 120px;
             }
         }
     </style>
@@ -366,11 +391,13 @@
         </div>
     </div>
     
+    <div class="minimap">
+        <div class="minimap-title">Карта</div>
+        <canvas id="minimap-canvas"></canvas>
+    </div>
+    
     <div class="instructions">
-        <div><strong>ПК:</strong></div>
-        <div>WASD - движение</div>
-        <div>Мышь - осмотр</div>
-        <div>E - взять</div>
+        📱 Свайп по экрану = смотреть вокруг
     </div>
     
     <div id="interaction-prompt">Нажмите E</div>
@@ -385,7 +412,6 @@
         
         <div class="action-buttons">
             <div class="btn-action" id="interact-btn">✋</div>
-            <div class="btn-action" id="look-btn">👀</div>
         </div>
     </div>
     
@@ -541,7 +567,6 @@
         // Mobile controls
         let joystickActive = false;
         let joystickData = { x: 0, y: 0 };
-        let lookMode = false;
         
         // Joystick handling
         const joystickContainer = document.getElementById('joystick-container');
@@ -598,33 +623,43 @@
             }
         });
         
-        // Look button
-        const lookBtn = document.getElementById('look-btn');
-        lookBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            lookMode = true;
-        });
-        lookBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            lookMode = false;
-        });
-        
-        // Touch look controls
+        // Touch look controls - SWIPE ANYWHERE ON SCREEN
         let lastTouchX = 0;
+        let touchLookActive = false;
+        
         renderer.domElement.addEventListener('touchstart', (e) => {
-            if (lookMode && e.touches.length > 0) {
-                lastTouchX = e.touches[0].clientX;
+            // Check if touch is not on joystick or buttons
+            const touch = e.touches[0];
+            const joystickRect = joystickContainer.getBoundingClientRect();
+            const interactBtn = document.getElementById('interact-btn').getBoundingClientRect();
+            
+            const notOnControls = !isPointInRect(touch.clientX, touch.clientY, joystickRect) &&
+                                 !isPointInRect(touch.clientX, touch.clientY, interactBtn);
+            
+            if (notOnControls && e.touches.length === 1) {
+                touchLookActive = true;
+                lastTouchX = touch.clientX;
+                e.preventDefault();
             }
         });
         
         renderer.domElement.addEventListener('touchmove', (e) => {
-            if (lookMode && e.touches.length > 0) {
-                e.preventDefault();
-                const deltaX = e.touches[0].clientX - lastTouchX;
+            if (touchLookActive && e.touches.length === 1) {
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - lastTouchX;
                 mouseX -= deltaX * 0.01;
-                lastTouchX = e.touches[0].clientX;
+                lastTouchX = touch.clientX;
+                e.preventDefault();
             }
         });
+        
+        renderer.domElement.addEventListener('touchend', () => {
+            touchLookActive = false;
+        });
+        
+        function isPointInRect(x, y, rect) {
+            return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+        }
         
         // Keyboard controls
         document.addEventListener('keydown', (e) => {
@@ -754,6 +789,58 @@
             setTimeout(() => div.remove(), 2000);
         }
         
+        // Minimap
+        const minimapCanvas = document.getElementById('minimap-canvas');
+        const minimapCtx = minimapCanvas.getContext('2d');
+        minimapCanvas.width = 130;
+        minimapCanvas.height = 130;
+        
+        function drawMinimap() {
+            minimapCtx.clearRect(0, 0, 130, 130);
+            
+            // Room outline
+            minimapCtx.strokeStyle = '#d4a574';
+            minimapCtx.lineWidth = 2;
+            minimapCtx.strokeRect(5, 5, 120, 120);
+            
+            // Items
+            items.forEach(item => {
+                if (!item.userData.cleaned || item.userData.decision === 'keep') {
+                    const x = ((item.position.x + 10) / 20) * 120 + 5;
+                    const z = ((item.position.z + 10) / 20) * 120 + 5;
+                    
+                    if (item.userData.cleaned) {
+                        minimapCtx.fillStyle = '#ffd700';
+                    } else {
+                        minimapCtx.fillStyle = '#ff6b6b';
+                    }
+                    
+                    minimapCtx.beginPath();
+                    minimapCtx.arc(x, z, 3, 0, Math.PI * 2);
+                    minimapCtx.fill();
+                }
+            });
+            
+            // Player
+            const playerX = ((player.position.x + 10) / 20) * 120 + 5;
+            const playerZ = ((player.position.z + 10) / 20) * 120 + 5;
+            
+            minimapCtx.fillStyle = '#4169e1';
+            minimapCtx.beginPath();
+            minimapCtx.arc(playerX, playerZ, 5, 0, Math.PI * 2);
+            minimapCtx.fill();
+            
+            // Player direction
+            const dirX = Math.sin(mouseX) * 8;
+            const dirZ = Math.cos(mouseX) * 8;
+            minimapCtx.strokeStyle = '#4169e1';
+            minimapCtx.lineWidth = 2;
+            minimapCtx.beginPath();
+            minimapCtx.moveTo(playerX, playerZ);
+            minimapCtx.lineTo(playerX + dirX, playerZ - dirZ);
+            minimapCtx.stroke();
+        }
+        
         // Animation loop
         function animate() {
             requestAnimationFrame(animate);
@@ -833,6 +920,7 @@
                 promptEl.style.display = 'none';
             }
             
+            drawMinimap();
             renderer.render(scene, camera);
         }
         
