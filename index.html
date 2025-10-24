@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="kk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D Симулятор Уборки - Метод КонМари</title>
+    <title>3D Тазалау Симуляторы - КонМари Әдісі</title>
     <style>
         body {
             margin: 0;
@@ -101,6 +101,17 @@
             font-size: 1em;
             color: #666;
             margin-bottom: 20px;
+        }
+        
+        .item-special {
+            text-align: center;
+            font-size: 0.9em;
+            color: #d4a574;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #fff3e0;
+            border-radius: 10px;
         }
         
         .decision-buttons {
@@ -376,17 +387,17 @@
     <div id="canvas-container"></div>
     
     <div id="ui-overlay">
-        <h2 style="color: #d4a574; margin-bottom: 10px;">✨ Уборка</h2>
+        <h2 style="color: #d4a574; margin-bottom: 10px;">✨ Тазалау</h2>
         <div class="stat-row">
-            <span class="stat-label">Убрано:</span>
-            <span id="cleaned-count">0/15</span>
+            <span class="stat-label">Тазаланды:</span>
+            <span id="cleaned-count">0/10</span>
         </div>
         <div class="stat-row">
-            <span class="stat-label">✨:</span>
+            <span class="stat-label">✨ Қалдырды:</span>
             <span id="kept-count">0</span>
         </div>
         <div class="stat-row">
-            <span class="stat-label">🗑️:</span>
+            <span class="stat-label">🗑️ Тастады:</span>
             <span id="discarded-count">0</span>
         </div>
     </div>
@@ -397,10 +408,10 @@
     </div>
     
     <div class="instructions">
-        📱 Свайп по экрану = смотреть вокруг
+        📱 Экранды сипап қараңыз
     </div>
     
-    <div id="interaction-prompt">Нажмите E</div>
+    <div id="interaction-prompt">E басыңыз</div>
     
     <!-- Mobile Controls -->
     <div class="mobile-controls">
@@ -416,31 +427,32 @@
     </div>
     
     <div id="decision-modal">
-        <h2 id="item-name">Название вещи</h2>
+        <h2 id="item-name">Заттың аты</h2>
         <div class="item-emoji" id="item-emoji">📦</div>
-        <div class="item-description" id="item-description">Описание вещи</div>
-        <div class="item-description" style="color: #d4a574; font-weight: bold;">Вызывает ли это у вас искру радости?</div>
+        <div class="item-description" id="item-description">Сипаттама</div>
+        <div id="item-special-note" class="item-special" style="display: none;"></div>
+        <div class="item-description" style="color: #d4a574; font-weight: bold;">Бұл сізге қуаныш әкеле ме?</div>
         <div class="decision-buttons">
-            <button class="btn-keep" onclick="makeDecision('keep')">✨ Оставить</button>
-            <button class="btn-discard" onclick="makeDecision('discard')">🗑️ Выбросить</button>
+            <button class="btn-keep" onclick="makeDecision('keep')">✨ Қалдырамын</button>
+            <button class="btn-discard" onclick="makeDecision('discard')">🗑️ Тастаймын</button>
         </div>
     </div>
     
     <div id="completion-screen">
         <div class="completion-content">
-            <h1>🎉 Готово!</h1>
+            <h1>🎉 Тамаша!</h1>
             <div class="stats-grid">
                 <div class="stat-box">
                     <div class="number" id="final-kept">0</div>
-                    <div class="label">Оставили</div>
+                    <div class="label">Қалдырдыңыз</div>
                 </div>
                 <div class="stat-box">
                     <div class="number" id="final-discarded">0</div>
-                    <div class="label">Выбросили</div>
+                    <div class="label">Тастадыңыз</div>
                 </div>
             </div>
             <div class="feedback-text" id="final-feedback"></div>
-            <button class="btn-restart" onclick="restartGame()">🔄 Ещё раз</button>
+            <button class="btn-restart" onclick="restartGame()">🔄 Қайта бастау</button>
         </div>
     </div>
     
@@ -500,23 +512,95 @@
         rightWall.rotation.y = -Math.PI / 2;
         scene.add(rightWall);
         
-        // Items data
+        // Items data - 10 items, 4 special (important gifts from mother)
         const itemsData = [
-            { name: "Старая футболка", emoji: "👕", description: "Футболка из университета, которую не носили 5 лет", color: 0x4169e1, position: [-8, 0.3, -8] },
-            { name: "Любимая кружка", emoji: "☕", description: "Кружка, которая всегда поднимает настроение", color: 0xff6b6b, position: [-5, 0.3, -7] },
-            { name: "Сломанный телефон", emoji: "📱", description: "Старый телефон с разбитым экраном", color: 0x333333, position: [5, 0.3, -8] },
-            { name: "Книга 'Война и мир'", emoji: "📚", description: "Подарили 3 года назад, но так и не начали читать", color: 0x8b4513, position: [8, 0.3, -7] },
-            { name: "Косметика", emoji: "💄", description: "Тушь с истёкшим сроком годности", color: 0xff69b4, position: [-8, 0.3, -3] },
-            { name: "Сувенир из путешествия", emoji: "🗿", description: "Статуэтка из поездки мечты в Японию", color: 0x8b7355, position: [-5, 0.3, -2] },
-            { name: "Зарядка от Nokia", emoji: "🔌", description: "Зарядка от телефона, которого уже нет", color: 0x404040, position: [0, 0.3, -8] },
-            { name: "Фотоальбом", emoji: "📷", description: "Альбом с фотографиями детства", color: 0xdaa520, position: [5, 0.3, -3] },
-            { name: "Джинсы", emoji: "👖", description: "Джинсы, которые малы уже 3 года", color: 0x1e90ff, position: [8, 0.3, -2] },
-            { name: "Пакеты из магазина", emoji: "🛍️", description: "25 пластиковых пакетов 'на всякий случай'", color: 0xe0e0e0, position: [-8, 0.3, 2] },
-            { name: "Подарочная ваза", emoji: "🏺", description: "Ваза от родственников, которая не нравится", color: 0xb8860b, position: [-5, 0.3, 3] },
-            { name: "Любимая книга", emoji: "📖", description: "Книга, которую перечитываете каждый год", color: 0x8b0000, position: [0, 0.3, -3] },
-            { name: "Инструкции", emoji: "📋", description: "Инструкции от старой техники", color: 0xffffff, position: [5, 0.3, 2] },
-            { name: "Платье", emoji: "👗", description: "Красивое платье для особых случаев", color: 0xff1493, position: [8, 0.3, 3] },
-            { name: "Квитанции", emoji: "📄", description: "Старые квитанции за 2020 год", color: 0xf5f5dc, position: [0, 0.3, 3] }
+            // МАҢЫЗДЫ ЗАТТАР (4 дана) - Анадан сыйлық
+            { 
+                name: "Ананың сыйлаған сағаты", 
+                emoji: "⌚", 
+                description: "Туған күніңізге ана сыйлаған алтын сағат. Әр қашан киесіз.", 
+                color: 0xffd700, 
+                position: [-8, 0.3, -8],
+                special: true,
+                specialNote: "💝 Ананың сыйлығы - ең қымбат зат!"
+            },
+            { 
+                name: "Анамның қолмен тоқыған шәлі", 
+                emoji: "🧣", 
+                description: "Ана өз қолымен тоқып берген жылы шәл. Қысқы күндері жылытады.", 
+                color: 0xff6b6b, 
+                position: [-5, 0.3, -7],
+                special: true,
+                specialNote: "💝 Ананың қолынан жасалған!"
+            },
+            { 
+                name: "Үлгі тұтатын ұстазым берген кітап", 
+                emoji: "📖", 
+                description: "Ұстазым берген 'Абай жолы' кітабі. Ішінде жазбалары бар.", 
+                color: 0x8b4513, 
+                position: [5, 0.3, -8],
+                special: true,
+                specialNote: "💝 Ұстазымның жазбасы бар кітап!"
+            },
+            { 
+                name: "Отбасылық фотоальбом", 
+                emoji: "📷", 
+                description: "Анамен бірге жинаған отбасы суреттері. Бала кездің естеліктері.", 
+                color: 0xdaa520, 
+                position: [8, 0.3, -7],
+                special: true,
+                specialNote: "💝 Отбасының қымбат естеліктері!"
+            },
+            
+            // ҚАРАПАЙЫМ ЗАТТАР (6 дана)
+            { 
+                name: "Ескі футболка", 
+                emoji: "👕", 
+                description: "Университеттен қалған футболка. 5 жыл киген жоқсыз.", 
+                color: 0x4169e1, 
+                position: [-8, 0.3, -3],
+                special: false
+            },
+            { 
+                name: "Сынған телефон", 
+                emoji: "📱", 
+                description: "Экраны сынған ескі телефон. Жұмыс істемейді.", 
+                color: 0x333333, 
+                position: [8, 0.3, -2],
+                special: false
+            },
+            { 
+                name: "Косметика", 
+                emoji: "💄", 
+                description: "Мерзімі өткен тушь. Қолдану қауіпті.", 
+                color: 0xff69b4, 
+                position: [-5, 0.3, -2],
+                special: false
+            },
+            { 
+                name: "Дүкеннің пакеттері", 
+                emoji: "🛍️", 
+                description: "25 дана пластик пакет 'әйтеуір керек болар' деп.", 
+                color: 0xe0e0e0, 
+                position: [-8, 0.3, 2],
+                special: false
+            },
+            { 
+                name: "Нұсқаулықтар", 
+                emoji: "📋", 
+                description: "Ескі техниканың нұсқаулықтары. Техника жоқ.", 
+                color: 0xffffff, 
+                position: [5, 0.3, 2],
+                special: false
+            },
+            { 
+                name: "Түбіртектер", 
+                emoji: "📄", 
+                description: "2020 жылдың ескі түбіртектері.", 
+                color: 0xf5f5dc, 
+                position: [0, 0.3, 3],
+                special: false
+            }
         ];
         
         // Create items
@@ -534,9 +618,9 @@
             
             const glowGeometry = new THREE.SphereGeometry(0.5, 16, 16);
             const glowMaterial = new THREE.MeshBasicMaterial({
-                color: 0xffd700,
+                color: itemData.special ? 0xff69b4 : 0xffd700,
                 transparent: true,
-                opacity: 0.3
+                opacity: itemData.special ? 0.5 : 0.3
             });
             const glow = new THREE.Mesh(glowGeometry, glowMaterial);
             glow.scale.set(1.2, 1.2, 1.2);
@@ -628,7 +712,6 @@
         let touchLookActive = false;
         
         renderer.domElement.addEventListener('touchstart', (e) => {
-            // Check if touch is not on joystick or buttons
             const touch = e.touches[0];
             const joystickRect = joystickContainer.getBoundingClientRect();
             const interactBtn = document.getElementById('interact-btn').getBoundingClientRect();
@@ -700,6 +783,7 @@
         let cleanedCount = 0;
         let keptCount = 0;
         let discardedCount = 0;
+        let specialItemsDiscarded = 0;
         
         function openItemDecision(item) {
             currentItem = item;
@@ -707,6 +791,14 @@
             document.getElementById('item-name').textContent = item.userData.name;
             document.getElementById('item-emoji').textContent = item.userData.emoji;
             document.getElementById('item-description').textContent = item.userData.description;
+            
+            const specialNote = document.getElementById('item-special-note');
+            if (item.userData.special) {
+                specialNote.textContent = item.userData.specialNote;
+                specialNote.style.display = 'block';
+            } else {
+                specialNote.style.display = 'none';
+            }
             
             if (document.pointerLockElement === renderer.domElement) {
                 document.exitPointerLock();
@@ -722,12 +814,17 @@
             
             if (decision === 'keep') {
                 keptCount++;
-                createFloatingText('✨ Оставили!', currentItem.position);
+                createFloatingText('✨ Қалдырдым!', currentItem.position);
                 currentItem.userData.glow.material.color.setHex(0xffd700);
                 currentItem.userData.glow.material.opacity = 0.6;
             } else {
                 discardedCount++;
-                createFloatingText('🗑️ Выбросили!', currentItem.position);
+                if (currentItem.userData.special) {
+                    specialItemsDiscarded++;
+                    createFloatingText('💔 Тастадым...', currentItem.position);
+                } else {
+                    createFloatingText('🗑️ Тастадым!', currentItem.position);
+                }
                 currentItem.userData.glow.material.opacity = 0;
                 setTimeout(() => {
                     scene.remove(currentItem);
@@ -754,15 +851,14 @@
             document.getElementById('final-kept').textContent = keptCount;
             document.getElementById('final-discarded').textContent = discardedCount;
             
-            const keepPercentage = Math.round((keptCount / itemsData.length) * 100);
             let feedback = '';
             
-            if (keepPercentage > 70) {
-                feedback = '💭 Вы склонны держаться за вещи! Мари Кондо советует быть смелее. Помните: меньше вещей = больше радости!';
-            } else if (keepPercentage < 30) {
-                feedback = '✨ Отлично! Вы понимаете принцип "искры радости"! Вы не боитесь отпускать ненужное!';
+            if (specialItemsDiscarded === 0) {
+                feedback = '💖 Керемет! Сіз анаңыздың сыйлықтарын сақтадыңыз! Ең қымбат заттарды бағалау керек. Мари Кондо да мақұлдар еді!';
+            } else if (specialItemsDiscarded <= 2) {
+                feedback = '💭 Кейбір қымбат заттарды тастадыңыз. Анаңыздың сыйлықтары өте қымбат емес пе? Олар қуаныш әкеледі ме?';
             } else {
-                feedback = '⚖️ Хороший баланс! Вы понимаете важность окружать себя любимым, но не цепляетесь за прошлое!';
+                feedback = '💔 Сіз анаңыздың көп сыйлықтарын тастадыңыз. Қымбат естеліктерді қайта ойлап көріңіз - олар қайтып келмейді...';
             }
             
             document.getElementById('final-feedback').innerHTML = feedback;
@@ -811,6 +907,8 @@
                     
                     if (item.userData.cleaned) {
                         minimapCtx.fillStyle = '#ffd700';
+                    } else if (item.userData.special) {
+                        minimapCtx.fillStyle = '#ff69b4'; // Pink for special items
                     } else {
                         minimapCtx.fillStyle = '#ff6b6b';
                     }
@@ -893,7 +991,12 @@
                 if (!item.userData.cleaned) {
                     item.rotation.y += 0.01;
                     item.position.y = item.userData.position[1] + Math.sin(Date.now() * 0.002) * 0.1;
-                    item.userData.glow.material.opacity = 0.3 + Math.sin(Date.now() * 0.003) * 0.2;
+                    if (item.userData.special) {
+                        // Special items pulse more
+                        item.userData.glow.material.opacity = 0.5 + Math.sin(Date.now() * 0.005) * 0.3;
+                    } else {
+                        item.userData.glow.material.opacity = 0.3 + Math.sin(Date.now() * 0.003) * 0.2;
+                    }
                 }
             });
             
