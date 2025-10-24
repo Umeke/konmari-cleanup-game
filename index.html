@@ -121,22 +121,6 @@
         }
         
         .btn-keep {
-            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-            border: none;
-            padding: 15px 30px;
-            border-radius: 15px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-            transition: all 0.3s;
-        }
-        
-        .btn-keep:active {
-            transform: scale(0.95);
-        }
-        
-        .btn-discard {
             background: linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%);
             border: none;
             padding: 15px 30px;
@@ -146,6 +130,23 @@
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             transition: all 0.3s;
+        }
+        
+        .btn-keep:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-discard {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+            transition: all 0.3s;
+            color: white;
         }
         
         .btn-discard:active {
@@ -390,14 +391,14 @@
         <h2 style="color: #d4a574; margin-bottom: 10px;">✨ Тазалау</h2>
         <div class="stat-row">
             <span class="stat-label">Тазаланды:</span>
-            <span id="cleaned-count">0/10</span>
+            <span id="cleaned-count">0/15</span>
         </div>
         <div class="stat-row">
-            <span class="stat-label">✨ Қалдырды:</span>
+            <span class="stat-label">😔 Қалдырды:</span>
             <span id="kept-count">0</span>
         </div>
         <div class="stat-row">
-            <span class="stat-label">🗑️ Тастады:</span>
+            <span class="stat-label">✅ Тастады:</span>
             <span id="discarded-count">0</span>
         </div>
     </div>
@@ -433,22 +434,22 @@
         <div id="item-special-note" class="item-special" style="display: none;"></div>
         <div class="item-description" style="color: #d4a574; font-weight: bold;">Бұл сізге қуаныш әкеле ме?</div>
         <div class="decision-buttons">
-            <button class="btn-keep" onclick="makeDecision('keep')">✨ Қалдырамын</button>
-            <button class="btn-discard" onclick="makeDecision('discard')">🗑️ Тастаймын</button>
+            <button class="btn-discard" onclick="makeDecision('discard')">✅ Тастаймын</button>
+            <button class="btn-keep" onclick="makeDecision('keep')">😔 Қалдырамын</button>
         </div>
     </div>
     
     <div id="completion-screen">
         <div class="completion-content">
-            <h1>🎉 Тамаша!</h1>
+            <h1>🎉 Аяқталды!</h1>
             <div class="stats-grid">
                 <div class="stat-box">
-                    <div class="number" id="final-kept">0</div>
-                    <div class="label">Қалдырдыңыз</div>
+                    <div class="number" id="final-discarded">0</div>
+                    <div class="label">Тастадыңыз ✅</div>
                 </div>
                 <div class="stat-box">
-                    <div class="number" id="final-discarded">0</div>
-                    <div class="label">Тастадыңыз</div>
+                    <div class="number" id="final-kept">0</div>
+                    <div class="label">Қалдырдыңыз 😔</div>
                 </div>
             </div>
             <div class="feedback-text" id="final-feedback"></div>
@@ -464,7 +465,7 @@
         scene.fog = new THREE.Fog(0xf5f0e8, 10, 30);
         
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 1.6, 8);
+        camera.position.set(0, 1.6, 10);
         
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -482,7 +483,7 @@
         scene.add(directionalLight);
         
         // Floor
-        const floorGeometry = new THREE.PlaneGeometry(20, 20);
+        const floorGeometry = new THREE.PlaneGeometry(25, 25);
         const floorMaterial = new THREE.MeshStandardMaterial({ 
             color: 0xe8dfd0,
             roughness: 0.8
@@ -498,67 +499,67 @@
             roughness: 0.9
         });
         
-        const backWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 8), wallMaterial);
-        backWall.position.set(0, 4, -10);
+        const backWall = new THREE.Mesh(new THREE.PlaneGeometry(25, 8), wallMaterial);
+        backWall.position.set(0, 4, -12);
         scene.add(backWall);
         
-        const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 8), wallMaterial);
-        leftWall.position.set(-10, 4, 0);
+        const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(25, 8), wallMaterial);
+        leftWall.position.set(-12, 4, 0);
         leftWall.rotation.y = Math.PI / 2;
         scene.add(leftWall);
         
-        const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(20, 8), wallMaterial);
-        rightWall.position.set(10, 4, 0);
+        const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(25, 8), wallMaterial);
+        rightWall.position.set(12, 4, 0);
         rightWall.rotation.y = -Math.PI / 2;
         scene.add(rightWall);
         
-        // Items data - 10 items, 4 special (important gifts from mother)
+        // Items data - 15 items total
         const itemsData = [
-            // МАҢЫЗДЫ ЗАТТАР (4 дана) - Анадан сыйлық
+            // ЭМОЦИОНАЛДЫ МАҢЫЗДЫ ЗАТТАР (4 дана)
             { 
                 name: "Ананың сыйлаған сағаты", 
                 emoji: "⌚", 
-                description: "Туған күніңізге ана сыйлаған алтын сағат. Әр қашан киесіз.", 
+                description: "Туған күніңізге ана сыйлаған сағат. Тоқтап қалған, жөндеу қымбат.", 
                 color: 0xffd700, 
-                position: [-8, 0.3, -8],
+                position: [-10, 0.3, -10],
                 special: true,
-                specialNote: "💝 Ананың сыйлығы - ең қымбат зат!"
+                specialNote: "💝 Ана сыйлаған, бірақ тоқтап қалған..."
             },
             { 
                 name: "Анамның қолмен тоқыған шәлі", 
                 emoji: "🧣", 
-                description: "Ана өз қолымен тоқып берген жылы шәл. Қысқы күндері жылытады.", 
+                description: "Ана өз қолымен тоқып берген шәл. Ескірген, киюге келмейді.", 
                 color: 0xff6b6b, 
-                position: [-5, 0.3, -7],
+                position: [-5, 0.3, -10],
                 special: true,
-                specialNote: "💝 Ананың қолынан жасалған!"
+                specialNote: "💝 Ана тоқыған, бірақ ескірген..."
             },
             { 
                 name: "Үлгі тұтатын ұстазым берген кітап", 
                 emoji: "📖", 
-                description: "Ұстазым берген 'Абай жолы' кітабі. Ішінде жазбалары бар.", 
+                description: "Ұстазым берген 'Абай жолы' кітабі. Ішінде жазбалары бар, бірақ оқымайсыз.", 
                 color: 0x8b4513, 
-                position: [5, 0.3, -8],
+                position: [0, 0.3, -10],
                 special: true,
-                specialNote: "💝 Ұстазымның жазбасы бар кітап!"
+                specialNote: "💝 Ұстаз берген, бірақ оқымайсыз..."
             },
             { 
-                name: "Отбасылық фотоальбом", 
-                emoji: "📷", 
-                description: "Анамен бірге жинаған отбасы суреттері. Бала кездің естеліктері.", 
+                name: "Балалық ойыншық", 
+                emoji: "🧸", 
+                description: "Балалық аюшаңыз. Естелік, бірақ шаң жинап жатыр.", 
                 color: 0xdaa520, 
-                position: [8, 0.3, -7],
+                position: [5, 0.3, -10],
                 special: true,
-                specialNote: "💝 Отбасының қымбат естеліктері!"
+                specialNote: "💝 Балалық естелік, бірақ қажет емес..."
             },
             
-            // ҚАРАПАЙЫМ ЗАТТАР (6 дана)
+            // ҚАРАПАЙЫМ ЗАТТАР (11 дана)
             { 
                 name: "Ескі футболка", 
                 emoji: "👕", 
                 description: "Университеттен қалған футболка. 5 жыл киген жоқсыз.", 
                 color: 0x4169e1, 
-                position: [-8, 0.3, -3],
+                position: [10, 0.3, -10],
                 special: false
             },
             { 
@@ -566,7 +567,7 @@
                 emoji: "📱", 
                 description: "Экраны сынған ескі телефон. Жұмыс істемейді.", 
                 color: 0x333333, 
-                position: [8, 0.3, -2],
+                position: [-10, 0.3, -5],
                 special: false
             },
             { 
@@ -574,7 +575,7 @@
                 emoji: "💄", 
                 description: "Мерзімі өткен тушь. Қолдану қауіпті.", 
                 color: 0xff69b4, 
-                position: [-5, 0.3, -2],
+                position: [-5, 0.3, -5],
                 special: false
             },
             { 
@@ -582,7 +583,7 @@
                 emoji: "🛍️", 
                 description: "25 дана пластик пакет 'әйтеуір керек болар' деп.", 
                 color: 0xe0e0e0, 
-                position: [-8, 0.3, 2],
+                position: [0, 0.3, -5],
                 special: false
             },
             { 
@@ -590,7 +591,7 @@
                 emoji: "📋", 
                 description: "Ескі техниканың нұсқаулықтары. Техника жоқ.", 
                 color: 0xffffff, 
-                position: [5, 0.3, 2],
+                position: [5, 0.3, -5],
                 special: false
             },
             { 
@@ -598,7 +599,47 @@
                 emoji: "📄", 
                 description: "2020 жылдың ескі түбіртектері.", 
                 color: 0xf5f5dc, 
-                position: [0, 0.3, 3],
+                position: [10, 0.3, -5],
+                special: false
+            },
+            { 
+                name: "Туысқаннан сыйлық ваза", 
+                emoji: "🏺", 
+                description: "Туыстан сыйлық ваза. Ұнамайды, бірақ тастауға ұялайсыз.", 
+                color: 0xb8860b, 
+                position: [-10, 0.3, 0],
+                special: false
+            },
+            { 
+                name: "Атадан қалған галстук", 
+                emoji: "👔", 
+                description: "Атадан қалған галстук. Ескірген, тағуға келмейді.", 
+                color: 0x000080, 
+                position: [-5, 0.3, 0],
+                special: false
+            },
+            { 
+                name: "Әжеден қалған таспих", 
+                emoji: "📿", 
+                description: "Әжеден қалған таспих. Қолданбайсыз, бірақ қымбат естелік.", 
+                color: 0x8b4513, 
+                position: [0, 0.3, 0],
+                special: false
+            },
+            { 
+                name: "Ескі олимпиада медалі", 
+                emoji: "🏆", 
+                description: "Мектептің олимпиада медалі. Тозған, бірақ жетістік.", 
+                color: 0xffd700, 
+                position: [5, 0.3, 0],
+                special: false
+            },
+            { 
+                name: "Суреттер қорабы", 
+                emoji: "🖼️", 
+                description: "1000+ сурет қорапта. Ешқашан қарамайсыз.", 
+                color: 0xcd853f, 
+                position: [10, 0.3, 0],
                 special: false
             }
         ];
@@ -639,7 +680,7 @@
         
         // Player controls
         const player = {
-            position: new THREE.Vector3(0, 1.6, 8),
+            position: new THREE.Vector3(0, 1.6, 10),
             speed: 0.1
         };
         
@@ -707,7 +748,7 @@
             }
         });
         
-        // Touch look controls - SWIPE ANYWHERE ON SCREEN
+        // Touch look controls
         let lastTouchX = 0;
         let touchLookActive = false;
         
@@ -783,7 +824,7 @@
         let cleanedCount = 0;
         let keptCount = 0;
         let discardedCount = 0;
-        let specialItemsDiscarded = 0;
+        let specialItemsKept = 0;
         
         function openItemDecision(item) {
             currentItem = item;
@@ -812,23 +853,23 @@
             currentItem.userData.decision = decision;
             cleanedCount++;
             
-            if (decision === 'keep') {
-                keptCount++;
-                createFloatingText('✨ Қалдырдым!', currentItem.position);
-                currentItem.userData.glow.material.color.setHex(0xffd700);
-                currentItem.userData.glow.material.opacity = 0.6;
-            } else {
+            if (decision === 'discard') {
                 discardedCount++;
-                if (currentItem.userData.special) {
-                    specialItemsDiscarded++;
-                    createFloatingText('💔 Тастадым...', currentItem.position);
-                } else {
-                    createFloatingText('🗑️ Тастадым!', currentItem.position);
-                }
+                createFloatingText('✅ Тастадым!', currentItem.position);
                 currentItem.userData.glow.material.opacity = 0;
                 setTimeout(() => {
                     scene.remove(currentItem);
                 }, 1000);
+            } else {
+                keptCount++;
+                if (currentItem.userData.special) {
+                    specialItemsKept++;
+                    createFloatingText('😔 Қалдырдым...', currentItem.position);
+                } else {
+                    createFloatingText('😔 Қалдырдым', currentItem.position);
+                }
+                currentItem.userData.glow.material.color.setHex(0x808080);
+                currentItem.userData.glow.material.opacity = 0.3;
             }
             
             updateStats();
@@ -851,14 +892,21 @@
             document.getElementById('final-kept').textContent = keptCount;
             document.getElementById('final-discarded').textContent = discardedCount;
             
+            const discardPercentage = Math.round((discardedCount / itemsData.length) * 100);
             let feedback = '';
             
-            if (specialItemsDiscarded === 0) {
-                feedback = '💖 Керемет! Сіз анаңыздың сыйлықтарын сақтадыңыз! Ең қымбат заттарды бағалау керек. Мари Кондо да мақұлдар еді!';
-            } else if (specialItemsDiscarded <= 2) {
-                feedback = '💭 Кейбір қымбат заттарды тастадыңыз. Анаңыздың сыйлықтары өте қымбат емес пе? Олар қуаныш әкеледі ме?';
+            if (discardPercentage === 100) {
+                feedback = '🎉 Керемет! Сіз барлық заттарды тастадыңыз! Толық бостандық! Мари Кондо мақтан тұтар еді! Енді тек керек заттар ғана қалды!';
+            } else if (discardPercentage >= 80) {
+                if (specialItemsKept > 0) {
+                    feedback = '💪 Жақсы нәтиже! Бірақ эмоционалды заттарды қалдырдыңыз. Олар шынымен қажет пе? Естелік жүректе қалады, зат емес!';
+                } else {
+                    feedback = '👏 Өте жақсы! Сіз көпшілік заттарды тастадыңыз! Мари Кондо әдісін түсіндіңіз!';
+                }
+            } else if (discardPercentage >= 50) {
+                feedback = '🤔 Жартысын тастадыңыз. Бірақ әлі де көп зат қалды. Қажет емес заттар өміріңізге ауыртпалық түсіреді!';
             } else {
-                feedback = '💔 Сіз анаңыздың көп сыйлықтарын тастадыңыз. Қымбат естеліктерді қайта ойлап көріңіз - олар қайтып келмейді...';
+                feedback = '😔 Өкінішке орай, көп затты қалдырдыңыз. Ескі, қажетсіз заттар сізді өткеннен босатпайды. Қайта ойланып көріңіз!';
             }
             
             document.getElementById('final-feedback').innerHTML = feedback;
@@ -894,21 +942,19 @@
         function drawMinimap() {
             minimapCtx.clearRect(0, 0, 130, 130);
             
-            // Room outline
             minimapCtx.strokeStyle = '#d4a574';
             minimapCtx.lineWidth = 2;
             minimapCtx.strokeRect(5, 5, 120, 120);
             
-            // Items
             items.forEach(item => {
                 if (!item.userData.cleaned || item.userData.decision === 'keep') {
-                    const x = ((item.position.x + 10) / 20) * 120 + 5;
-                    const z = ((item.position.z + 10) / 20) * 120 + 5;
+                    const x = ((item.position.x + 12) / 24) * 120 + 5;
+                    const z = ((item.position.z + 12) / 24) * 120 + 5;
                     
-                    if (item.userData.cleaned) {
-                        minimapCtx.fillStyle = '#ffd700';
+                    if (item.userData.cleaned && item.userData.decision === 'keep') {
+                        minimapCtx.fillStyle = '#808080';
                     } else if (item.userData.special) {
-                        minimapCtx.fillStyle = '#ff69b4'; // Pink for special items
+                        minimapCtx.fillStyle = '#ff69b4';
                     } else {
                         minimapCtx.fillStyle = '#ff6b6b';
                     }
@@ -919,16 +965,14 @@
                 }
             });
             
-            // Player
-            const playerX = ((player.position.x + 10) / 20) * 120 + 5;
-            const playerZ = ((player.position.z + 10) / 20) * 120 + 5;
+            const playerX = ((player.position.x + 12) / 24) * 120 + 5;
+            const playerZ = ((player.position.z + 12) / 24) * 120 + 5;
             
             minimapCtx.fillStyle = '#4169e1';
             minimapCtx.beginPath();
             minimapCtx.arc(playerX, playerZ, 5, 0, Math.PI * 2);
             minimapCtx.fill();
             
-            // Player direction
             const dirX = Math.sin(mouseX) * 8;
             const dirZ = Math.cos(mouseX) * 8;
             minimapCtx.strokeStyle = '#4169e1';
@@ -948,23 +992,19 @@
                 return;
             }
             
-            // Player movement
             let moveX = 0;
             let moveZ = 0;
             
-            // Keyboard
             if (keys['w']) moveZ = 1;
             if (keys['s']) moveZ = -1;
             if (keys['a']) moveX = -1;
             if (keys['d']) moveX = 1;
             
-            // Joystick (mobile)
             if (joystickActive) {
                 moveX = joystickData.x;
                 moveZ = joystickData.y;
             }
             
-            // Apply movement
             if (moveX !== 0 || moveZ !== 0) {
                 const forward = new THREE.Vector3(0, 0, -1);
                 forward.applyQuaternion(camera.quaternion);
@@ -979,20 +1019,18 @@
                 player.position.add(forward.multiplyScalar(moveZ * player.speed));
                 player.position.add(right.multiplyScalar(moveX * player.speed));
                 
-                player.position.x = Math.max(-9, Math.min(9, player.position.x));
-                player.position.z = Math.max(-9, Math.min(9, player.position.z));
+                player.position.x = Math.max(-11, Math.min(11, player.position.x));
+                player.position.z = Math.max(-11, Math.min(11, player.position.z));
             }
             
             camera.position.copy(player.position);
             camera.rotation.y = mouseX;
             
-            // Animate items
             items.forEach(item => {
                 if (!item.userData.cleaned) {
                     item.rotation.y += 0.01;
                     item.position.y = item.userData.position[1] + Math.sin(Date.now() * 0.002) * 0.1;
                     if (item.userData.special) {
-                        // Special items pulse more
                         item.userData.glow.material.opacity = 0.5 + Math.sin(Date.now() * 0.005) * 0.3;
                     } else {
                         item.userData.glow.material.opacity = 0.3 + Math.sin(Date.now() * 0.003) * 0.2;
@@ -1000,7 +1038,6 @@
                 }
             });
             
-            // Check nearby items
             nearbyItem = null;
             let minDistance = Infinity;
             
@@ -1014,7 +1051,6 @@
                 }
             });
             
-            // Show interaction prompt
             const promptEl = document.getElementById('interaction-prompt');
             if (nearbyItem) {
                 promptEl.style.display = 'block';
